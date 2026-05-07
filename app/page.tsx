@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/hooks/use-app';
-import { supabase } from '@/lib/supabase';
+import { createTransaction, processFinancialInput } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -23,42 +23,16 @@ export default function Dashboard() {
   const [nlpInput, setNlpInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const processFinancialInput = async (input: string) => {
-    const response = await fetch('/api/process-financial-input', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ input }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Falha ao processar entrada financeira.');
-    }
-
-    const data = await response.json();
-    return data.transactions as Array<{
-      descricao: string;
-      valorOriginal: number;
-      valorFinal: number;
-      dataVencimento: string;
-      categoria: string;
-      tipo: 'entrada' | 'saida';
-      status: 'pendente' | 'pago' | 'historico';
-      saldoMutation: number;
-    }>;
-  };
-
   const handleNlpProcess = async () => {
-    if (!nlpInput.trim() || !user) return;
+    if (!nlpInput.trim() || !user || !session?.access_token) return;
     setIsProcessing(true);
     try {
-      const results = await processFinancialInput(nlpInput);
+      const { transactions: results } = await processFinancialInput(session.access_token, nlpInput);
       for (const trans of results) {
-        await supabase.from('Transaction').insert([{ ...trans, userId: user.id, dataVencimento: new Date(trans.dataVencimento).toISOString() }]);
-        if (trans.saldoMutation !== 0) {
-          await supabase.from('User').update({ saldo_atual: (user.saldo_atual || 0) + trans.saldoMutation }).eq('id', user.id);
-        }
+        await createTransaction(session.access_token, {
+          ...trans,
+          dataVencimento: new Date(trans.dataVencimento).toISOString(),
+        });
       }
       setNlpInput('');
       await refreshData();

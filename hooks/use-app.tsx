@@ -1,14 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { getCurrentUser, listTransactions, type ApiTransaction, type ApiUser } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
-import { User, Transaction } from '@prisma/client';
 import { Session } from '@supabase/supabase-js';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface AppContextType {
-  user: User | null;
+  user: ApiUser | null;
   session: Session | null;
-  transactions: Transaction[];
+  transactions: ApiTransaction[];
   loading: boolean;
   refreshData: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -17,41 +17,24 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ApiUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<ApiTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = useCallback(async (userId: string, email: string, name?: string) => {
-    const { data: userData } = await supabase
-      .from('User')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (!userData) {
-      const { data: newUser } = await supabase
-        .from('User')
-        .insert([{ id: userId, email: email, name: name || 'User', saldo_atual: 0, salario_mensal: 0 }])
-        .select()
-        .single();
-      return newUser as unknown as User;
-    }
-    return userData as unknown as User;
-  }, []);
-
   const refreshData = useCallback(async () => {
-    if (!session?.user) return;
+    if (!session?.access_token) return;
     try {
       setLoading(true);
-      const profile = await fetchProfile(session.user.id, session.user.email!, session.user.user_metadata?.full_name);
-      if (profile) {
-        setUser(profile);
-        const { data: transData } = await supabase.from('Transaction').select('*').eq('userId', profile.id).order('dataVencimento', { ascending: false });
-        if (transData) setTransactions(transData as unknown as Transaction[]);
-      }
+      const [profile, transactionsResponse] = await Promise.all([
+        getCurrentUser(session.access_token),
+        listTransactions(session.access_token),
+      ]);
+
+      setUser(profile);
+      setTransactions(transactionsResponse.data);
     } catch (e) { console.error(e); } finally { setLoading(false); }
-  }, [session, fetchProfile]);
+  }, [session]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
