@@ -1,5 +1,5 @@
-import 'server-only';
 import { GoogleGenAI, Type } from "@google/genai";
+import 'server-only';
 
 function getGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -15,12 +15,12 @@ export async function processFinancialInput(input: string) {
   const response = await ai.models.generateContent({
     model: "gemini-1.5-flash",
     contents: `Process the following financial transaction description and return a JSON object with a list of transactions.
-    
+
     Description: "${input}"
-    
-    Balance current session context: 
+
+    Balance current session context:
     - If user says "Peguei X para pagar Y", create an "entrada" of X (status: "pago") and a "saida" of Y (status: "pendente").
-    
+
     The output must strictly follow this structure:
     {
       "transactions": [

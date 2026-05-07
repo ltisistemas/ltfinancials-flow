@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import { processFinancialInput } from '@/lib/gemini';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {

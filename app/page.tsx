@@ -1,23 +1,22 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { useApp } from '@/hooks/use-app';
-import { Logo } from '@/components/logo';
 import { AuthScreen } from '@/components/auth-screen';
-import { 
-  Wallet, Plus, History, TrendingUp, BrainCircuit, CreditCard, 
-  LogOut, ArrowUpRight, ArrowDownRight, Calendar, Sparkles
-} from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/logo';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { motion, AnimatePresence } from 'motion/react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useApp } from '@/hooks/use-app';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import {
+    BrainCircuit,
+    LogOut,
+    Sparkles
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 export default function Dashboard() {
   const { user, session, transactions, loading, refreshData, signOut } = useApp();
@@ -99,8 +98,8 @@ export default function Dashboard() {
           <Card className="glass-card p-6 md:col-span-2 space-y-4">
             <div className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /><h4 className="text-xs font-bold uppercase">Entrada Rápida</h4></div>
             <div className="relative">
-              <textarea 
-                className="w-full h-24 bg-muted border border-border rounded-xl p-3 text-sm focus:outline-none focus:border-primary transition-all" 
+              <textarea
+                className="w-full h-24 bg-muted border border-border rounded-xl p-3 text-sm focus:outline-none focus:border-primary transition-all"
                 placeholder="O que aconteceu?" value={nlpInput} onChange={e => setNlpInput(e.target.value)}
               />
               <Button className="absolute bottom-2 right-2 h-8" onClick={handleNlpProcess} disabled={isProcessing}>{isProcessing ? '...' : 'Processar'}</Button>
