@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0a0a;
+  --color-foreground: #e1e1e1;
+  --color-card: #151619;
+  --color-border: #2d2d2d;
+  --color-primary: #007acc;
+  --color-destructive: #ff4444;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #8e9299;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+@layer base {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #e1e1e1;
+    --card: #151619;
+    --card-foreground: #ffffff;
+    --popover: #151619;
+    --popover-foreground: #ffffff;
+    --primary: #007acc;
+    --primary-foreground: #ffffff;
+    --secondary: #252526;
+    --secondary-foreground: #e1e1e1;
+    --muted: #1a1a1a;
+    --muted-foreground: #8e9299;
+    --accent: #2d2d2d;
+    --accent-foreground: #ffffff;
+    --destructive: #ff4444;
+    --destructive-foreground: #ffffff;
+    --border: #2d2d2d;
+    --input: #1a1a1a;
+    --ring: #007acc;
+    --radius: 0.75rem;
+  }
+  
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-[rgba(21,22,25,0.85)] backdrop-blur-xl border-b border-white/5;
+  }
+  
+  .glass-card {
+    @apply bg-[#151619] border border-white/5 shadow-2xl;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  .tech-border {
+    @apply border border-white/5 relative;
+  }
+}
