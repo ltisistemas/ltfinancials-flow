@@ -16,7 +16,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { processFinancialInput } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +23,32 @@ export default function Dashboard() {
   const { user, session, transactions, loading, refreshData, signOut } = useApp();
   const [nlpInput, setNlpInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const processFinancialInput = async (input: string) => {
+    const response = await fetch('/api/process-financial-input', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ input }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Falha ao processar entrada financeira.');
+    }
+
+    const data = await response.json();
+    return data.transactions as Array<{
+      descricao: string;
+      valorOriginal: number;
+      valorFinal: number;
+      dataVencimento: string;
+      categoria: string;
+      tipo: 'entrada' | 'saida';
+      status: 'pendente' | 'pago' | 'historico';
+      saldoMutation: number;
+    }>;
+  };
 
   const handleNlpProcess = async () => {
     if (!nlpInput.trim() || !user) return;

@@ -1,8 +1,17 @@
+import 'server-only';
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY! });
+function getGeminiClient() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Missing GEMINI_API_KEY on server environment');
+  }
+
+  return new GoogleGenAI({ apiKey });
+}
 
 export async function processFinancialInput(input: string) {
+  const ai = getGeminiClient();
   const response = await ai.models.generateContent({
     model: "gemini-1.5-flash",
     contents: `Process the following financial transaction description and return a JSON object with a list of transactions.
