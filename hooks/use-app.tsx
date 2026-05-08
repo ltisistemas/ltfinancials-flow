@@ -1,6 +1,6 @@
 'use client';
 
-import { getCurrentUser, listTransactions, login, register, type ApiTransaction, type ApiUser } from '@/lib/api';
+import { getCurrentUser, listTransactions, login, register as registerApi, type ApiTransaction, type ApiUser } from '@/lib/api';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface AppSession {
@@ -33,6 +33,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       listTransactions(token),
     ]);
     setUser(profile);
+    setTransactions(transactionsResponse.data);
+  }, []);
+
+  const fetchTransactions = useCallback(async (token: string) => {
+    const transactionsResponse = await listTransactions(token);
     setTransactions(transactionsResponse.data);
   }, []);
 
@@ -73,24 +78,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, response.accessToken);
       setSession({ access_token: response.accessToken });
       setUser(response.user);
-      await fetchAuthenticatedData(response.accessToken);
+      await fetchTransactions(response.accessToken);
+    } catch (error) {
+      localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+      setSession(null);
+      setUser(null);
+      setTransactions([]);
+      throw error;
     } finally {
       setLoading(false);
     }
-  }, [fetchAuthenticatedData]);
+  }, [fetchTransactions]);
 
   const registerUser = useCallback(async (name: string, email: string, password: string) => {
     setLoading(true);
     try {
-      const response = await register(name, email, password);
+      const response = await registerApi(name, email, password);
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, response.accessToken);
       setSession({ access_token: response.accessToken });
       setUser(response.user);
-      await fetchAuthenticatedData(response.accessToken);
+      await fetchTransactions(response.accessToken);
+    } catch (error) {
+      localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+      setSession(null);
+      setUser(null);
+      setTransactions([]);
+      throw error;
     } finally {
       setLoading(false);
     }
-  }, [fetchAuthenticatedData]);
+  }, [fetchTransactions]);
 
   const signOut = async () => {
     localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
